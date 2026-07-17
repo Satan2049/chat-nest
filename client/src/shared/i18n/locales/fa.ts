@@ -77,17 +77,6 @@ export const fa: Translations = {
     resizeSidebar: "تغییر اندازه نوار کناری",
     closeSidebar: "بستن نوار کناری"
   },
-  mobile: {
-    chats: "گفتگوها",
-    projects: "پروژه‌ها",
-    library: "کتابخانه",
-    more: "بیشتر",
-    newChat: "گفتگوی جدید",
-    backToChats: "بازگشت به گفتگوها",
-    backToProjects: "بازگشت به پروژه‌ها",
-    tabNavigation: "ناوبری اصلی",
-    messageActions: "عملیات پیام"
-  },
   search: {
     title: "جستجو",
     placeholder: "جستجوی گفتگو… یا > برای دستورات",

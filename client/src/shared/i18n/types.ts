@@ -72,17 +72,6 @@ export type Translations = {
     resizeSidebar: string;
     closeSidebar: string;
   };
-  mobile: {
-    chats: string;
-    projects: string;
-    library: string;
-    more: string;
-    newChat: string;
-    backToChats: string;
-    backToProjects: string;
-    tabNavigation: string;
-    messageActions: string;
-  };
   search: {
     title: string;
     placeholder: string;

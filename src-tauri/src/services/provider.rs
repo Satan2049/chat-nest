@@ -1,4 +1,4 @@
-use crate::config::{AppConfig, AppState};
+use crate::config::AppState;
 use crate::error::AppError;
 use crate::models::provider::{ProviderKind, ProviderProfile, ProviderStore, UpsertProviderBody};
 use crate::models::settings::UpdateSettingsBody;
@@ -23,14 +23,6 @@ impl ProviderService {
         }
     }
 
-    fn store_for_disk(store: &ProviderStore) -> ProviderStore {
-        let mut disk = store.clone();
-        for profile in &mut disk.providers {
-            profile.api_key = String::new();
-        }
-        disk
-    }
-
     fn persist_provider_keys(store: &ProviderStore) {
         for profile in &store.providers {
             if profile.api_key.is_empty() {
@@ -39,6 +31,20 @@ impl ProviderService {
                 let _ = set_secret(&provider_key(&profile.id), &profile.api_key);
             }
         }
+    }
+
+    fn store_for_disk(store: &ProviderStore) -> ProviderStore {
+        let mut disk = store.clone();
+        for profile in &mut disk.providers {
+            // Keep the key on disk when keyring did not retain it (e.g. mock store /
+            // missing platform features). Prefer empty on disk when keyring works.
+            let keyring_ok = !profile.api_key.is_empty()
+                && get_secret(&provider_key(&profile.id)).as_deref() == Some(profile.api_key.as_str());
+            if keyring_ok {
+                profile.api_key = String::new();
+            }
+        }
+        disk
     }
 
     pub async fn load_store(state: &AppState) -> Result<ProviderStore, AppError> {
@@ -121,12 +127,22 @@ impl ProviderService {
             audio_model: body.audio_model.unwrap_or_default(),
         };
 
-        if let Some(idx) = store.providers.iter().position(|p| p.id == profile.id) {
+        let profile_id = profile.id.clone();
+        if let Some(idx) = store.providers.iter().position(|p| p.id == profile_id) {
             store.providers[idx] = profile;
         } else {
             store.providers.push(profile);
         }
 
+        // Saving a provider activates it so chat uses the same credentials as Test connection.
+        store.active_id = profile_id.clone();
+        let active = store
+            .providers
+            .iter()
+            .find(|p| p.id == profile_id)
+            .cloned()
+            .ok_or_else(|| AppError::Internal("Saved provider missing from store".to_string()))?;
+        Self::activate_profile(state, &active).await?;
         Self::persist_store(state, &store).await?;
         Ok(store)
     }

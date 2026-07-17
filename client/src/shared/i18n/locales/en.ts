@@ -77,17 +77,6 @@ export const en: Translations = {
     resizeSidebar: "Resize sidebar",
     closeSidebar: "Close sidebar"
   },
-  mobile: {
-    chats: "Chats",
-    projects: "Projects",
-    library: "Library",
-    more: "More",
-    newChat: "New chat",
-    backToChats: "Back to chats",
-    backToProjects: "Back to projects",
-    tabNavigation: "Main navigation",
-    messageActions: "Message actions"
-  },
   search: {
     title: "Search",
     placeholder: "Search chats… or type > for commands",

@@ -6,7 +6,7 @@
 
 **Local ChatGPT-style desktop chat for OpenAI-compatible APIs and Ollama**
 
-[![Version](https://img.shields.io/badge/version-2.6.2-6366f1?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.3-6366f1?style=flat-square)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-3f6fff?style=flat-square)](LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2-3f6fff?style=flat-square&logo=tauri&logoColor=white)](src-tauri/)
 [![Rust](https://img.shields.io/badge/Rust-2021-3f6fff?style=flat-square&logo=rust&logoColor=white)](src-tauri/)
@@ -15,7 +15,7 @@
 
 [Features](#features) · [Screenshots](#screenshots) · [Installation](#installation) · [Development](#development) · [Build](#build) · [Changelog](CHANGELOG.md) · [Trust](#trust) · [Contributing](CONTRIBUTING.md)
 
-**[Landing page](https://satan2049.github.io/that-gpt/)** · **[v2.6.2 release notes](docs/RELEASE_v2.6.2.md)** · **[Fork builds (GitHub Actions)](docs/FORK_BUILDS.md)**
+**[Landing page](https://satan2049.github.io/that-gpt/)** · **[v2.6.3 release notes](docs/RELEASE_v2.6.3.md)** · **[Fork builds (GitHub Actions)](docs/FORK_BUILDS.md)**
 
 <img src="assets/banner.png" alt="ThatGPT banner" width="100%" />
 
@@ -157,16 +157,14 @@ SHA256.txt                                  # after release:hashes
 
 GitHub Actions builds on **Windows, macOS, and Linux** (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
-**Mobile (Android/iOS):** see [docs/MOBILE_BUILD.md](docs/MOBILE_BUILD.md) — unsigned APK / simulator builds via [`mobile-release.yml`](.github/workflows/mobile-release.yml).
-
-To publish **v2.6.2** (or any version):
+To publish **v2.6.3** (or any version), push a version tag — the [release workflow](.github/workflows/release.yml) builds Windows, macOS, and Linux and uploads `SHA256.txt`:
 
 ```bash
-git tag v2.6.2
-git push origin v2.6.2
+git tag v2.6.3
+git push origin v2.6.3
 ```
 
-The [release workflow](.github/workflows/release.yml) uploads NSIS + portable (Windows), DMG (macOS arm64), AppImage (Linux), and `SHA256.txt`. [Mobile release](.github/workflows/mobile-release.yml) adds Android APKs + iOS sim zip. To build from a fork, see [docs/FORK_BUILDS.md](docs/FORK_BUILDS.md).
+To build from a fork, see [docs/FORK_BUILDS.md](docs/FORK_BUILDS.md).
 
 ### Windows-only packaging (local)
 
@@ -202,7 +200,7 @@ Details: [`docs/repository-intelligence.md`](docs/repository-intelligence.md)
 ## Trust
 
 - Verify downloads: [docs/TRUST.md](docs/TRUST.md)
-- Release notes: [docs/RELEASE_v2.6.2.md](docs/RELEASE_v2.6.2.md)
+- Release notes: [docs/RELEASE_v2.6.3.md](docs/RELEASE_v2.6.3.md)
 - Report security issues: [SECURITY.md](SECURITY.md)
 - Checksums: [`SHA256.txt`](SHA256.txt)
 

@@ -151,13 +151,17 @@ impl AppConfig {
         })?;
 
         let env_path = config_dir.join(".env");
+        // Prefer OS keyring, but only omit the key from .env when the round-trip
+        // succeeds. Without platform keyring features, the mock store "succeeds"
+        // in-process and then vanishes on restart — which wiped AI_API_KEY before.
         let key_in_keyring = if !self.ai_api_key.is_empty() {
             set_secret("ai_api_key", &self.ai_api_key)
+                && get_secret("ai_api_key").as_deref() == Some(self.ai_api_key.as_str())
         } else {
             crate::services::delete_secret("ai_api_key");
-            true
+            false
         };
-        let env_api_key = if key_in_keyring && get_secret("ai_api_key").is_some() {
+        let env_api_key = if key_in_keyring {
             String::new()
         } else {
             self.ai_api_key.clone()
@@ -207,7 +211,7 @@ impl AppConfig {
     }
 }
 
-fn load_api_key(_env_path: &Path) -> String {
+fn load_api_key(env_path: &Path) -> String {
     if let Some(key) = get_secret("ai_api_key") {
         return key;
     }
@@ -215,9 +219,28 @@ fn load_api_key(_env_path: &Path) -> String {
     let from_env = std::env::var("AI_API_KEY").unwrap_or_default();
     if !from_env.is_empty() {
         let _ = set_secret("ai_api_key", &from_env);
+        return from_env;
     }
 
-    from_env
+    // Last resort: parse .env directly if process env was empty/overwritten.
+    if let Ok(contents) = std::fs::read_to_string(env_path) {
+        for line in contents.lines() {
+            let line = line.trim();
+            if let Some(value) = line.strip_prefix("AI_API_KEY=") {
+                let value = value
+                    .trim()
+                    .trim_matches('"')
+                    .replace("\\\"", "\"")
+                    .replace("\\n", "\n");
+                if !value.is_empty() {
+                    let _ = set_secret("ai_api_key", &value);
+                    return value;
+                }
+            }
+        }
+    }
+
+    String::new()
 }
 
 fn escape_env_value(value: &str) -> String {

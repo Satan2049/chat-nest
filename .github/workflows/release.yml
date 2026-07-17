@@ -1,17 +1,23 @@
 name: Release (Desktop)
 
-# Desktop Win/macOS/Linux — run manually when needed.
-# Mobile releases use mobile-release.yml on tag push.
+# Builds Windows, macOS (Apple Silicon), and Linux on tag push.
+# Also runnable manually for an existing tag.
 on:
+  push:
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag (e.g. v2.6.2)"
+        description: "Existing release tag (e.g. v2.6.3)"
         required: true
         type: string
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
   release:
@@ -21,19 +27,23 @@ jobs:
         include:
           - platform: ubuntu-22.04
             args: ""
+            rust_targets: ""
             target: linux-x64
           - platform: macos-latest
             args: "--target aarch64-apple-darwin"
+            rust_targets: aarch64-apple-darwin
             target: macos-arm64
           - platform: windows-latest
             args: ""
+            rust_targets: ""
             target: windows-x64
 
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ env.RELEASE_TAG }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -41,7 +51,15 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             client/package-lock.json
+
       - uses: dtolnay/rust-toolchain@stable
+        if: matrix.rust_targets == ''
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.rust_targets != ''
+        with:
+          targets: ${{ matrix.rust_targets }}
+
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -51,20 +69,24 @@ jobs:
             libappindicator3-dev \
             librsvg2-dev \
             patchelf
+
       - name: Install dependencies
         run: npm ci
+
       - name: Build and upload release assets
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: .
-          tagName: ${{ inputs.tag }}
-          releaseName: ThatGPT ${{ inputs.tag }}
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: ThatGPT ${{ env.RELEASE_TAG }}
           releaseBody: |
-            Desktop artifacts for ${{ inputs.tag }}.
+            Desktop artifacts for ${{ env.RELEASE_TAG }} (Windows, macOS, Linux).
 
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md).
+
+            After this workflow finishes, `SHA256.txt` is attached with checksums for all assets.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
@@ -73,20 +95,25 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Download release assets
         uses: robinraju/release-downloader@v1
         with:
-          tag: ${{ inputs.tag }}
+          tag: ${{ env.RELEASE_TAG }}
           fileName: "*"
           out-file-path: release-assets
+
       - name: Generate SHA256 checksums
         run: |
+          set -euo pipefail
           cd release-assets
+          # Ignore any previous checksum file if re-running
+          rm -f SHA256.txt
           sha256sum * > SHA256.txt
+          echo "=== SHA256.txt ==="
           cat SHA256.txt
+
       - name: Upload checksums to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: release-assets/SHA256.txt

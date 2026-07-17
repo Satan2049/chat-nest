@@ -1,6 +1,6 @@
-# Fork workflow — GitHub Actions builds for all platforms
+# Fork workflow — GitHub Actions builds
 
-Use this guide to build **ThatGPT v2.6.2** artifacts on GitHub Actions from your own fork — without setting up Android SDK, Xcode, or cross-compilers locally.
+Use this guide to build **ThatGPT** desktop artifacts on GitHub Actions from your own fork — without setting up cross-compilers locally.
 
 ---
 
@@ -23,78 +23,63 @@ cd that-gpt
 2. Set **Actions permissions** to **Allow all actions and reusable workflows** (or allow selected actions including `tauri-apps/tauri-action`).
 3. Save.
 
-Forks do not run workflows until Actions is enabled and you push a tag or open a PR.
+Forks do not run workflows until Actions is enabled.
 
 ---
 
-## 3. Sync the release tag
+## 3. Build desktop release
 
-Make sure your fork has the `v2.6.2` tag (or whichever version you want to build):
+Desktop Win/macOS/Linux builds automatically when you push a version tag:
 
 ```bash
-git remote add upstream https://github.com/UPSTREAM_OWNER/that-gpt.git   # if needed
-git fetch upstream --tags
-git checkout main
-git merge upstream/main
-git tag v2.6.2    # skip if tag already exists locally
-git push origin main
-git push origin v2.6.2
+git tag v2.6.3
+git push origin v2.6.3
 ```
 
-Pushing tag `v2.6.2` triggers **mobile release only**:
+That triggers **Release (Desktop)** (`release.yml`):
 
-| Workflow | Runs on | Produces |
-|----------|---------|----------|
-| `mobile-release.yml` | `ubuntu-22.04` (+ optional `macos-latest` for iOS sim) | Android debug APK, iOS sim zip |
+| Runner | Produces |
+|--------|----------|
+| `windows-latest` | Windows installer (+ portable if configured) |
+| `macos-latest` | macOS Apple Silicon DMG |
+| `ubuntu-22.04` | Linux AppImage |
+| checksums job | `SHA256.txt` attached to the Release |
 
-Desktop (Win/macOS/Linux) is **not** built on tag push. Run **Release (Desktop)** manually from Actions when needed.
-
-Monitor progress: **Actions** tab on your fork.
+You can also run it manually: **Actions → Release (Desktop) → Run workflow** and enter the tag.
 
 ---
 
 ## 4. Download artifacts
 
-When workflows finish:
+When the workflow finishes:
 
-1. Open **Releases** on your fork (GitHub creates a release for the tag).
+1. Open **Releases** on your fork.
 2. Download binaries from **Assets**.
-
-If the Release page is empty, check each workflow run → **Artifacts** (some steps upload directly to the Release via `softprops/action-gh-release`).
 
 Expected files:
 
 ```
-ThatGPT_2.6.2_x64-setup.exe          # Windows installer
-ThatGPT_2.6.2_x64-portable.exe       # Windows portable
-ThatGPT_2.6.2_aarch64.dmg            # macOS Apple Silicon
-ThatGPT_2.6.2_amd64.AppImage         # Linux
-SHA256.txt                           # Desktop checksums
-*-debug.apk                          # Android sideload
-*-unsigned.apk                       # Android (sign locally)
-ThatGPT-ios-simulator-v2.6.2.zip     # iOS Simulator (macOS job)
+ThatGPT_2.6.3_x64-setup.exe          # Windows installer
+ThatGPT_2.6.3_x64-portable.exe       # Windows portable (if present)
+ThatGPT_2.6.3_aarch64.dmg            # macOS Apple Silicon
+ThatGPT_2.6.3_amd64.AppImage         # Linux
+SHA256.txt                           # Checksums for all assets
 ```
 
 ---
 
-## 5. CI without a tag (PR / push)
-
-For validation only (no Release assets):
+## 5. CI without a release (PR / push)
 
 | Workflow | Trigger | Output |
 |----------|---------|--------|
 | `ci.yml` | push / PR to `main` | Rust tests + client build |
-| `mobile-ci.yml` | push / PR to `main` | Debug APK artifact (download from run) |
-| `mobile-release.yml` | tag `v*` | Android APK + iOS sim zip on Release |
-| `release.yml` | **manual** | Desktop Win/macOS/Linux (optional) |
-
-These do **not** attach files to a GitHub Release.
+| `release.yml` | tag `v*.*.*` or **manual** | Desktop Win/macOS/Linux + `SHA256.txt` |
 
 ---
 
 ## 6. VirusTotal (optional)
 
-After downloading release assets, upload each binary to [VirusTotal](https://www.virustotal.com/) and paste public links into [RELEASE_v2.6.2.md](RELEASE_v2.6.2.md):
+After downloading release assets, upload each binary to [VirusTotal](https://www.virustotal.com/) and paste public links into [RELEASE_v2.6.3.md](RELEASE_v2.6.3.md).
 
 | Artifact | Placeholder |
 |----------|-------------|
@@ -102,9 +87,6 @@ After downloading release assets, upload each binary to [VirusTotal](https://www
 | Windows portable | _[VT link — Windows portable]_ |
 | macOS DMG | _[VT link — macOS DMG]_ |
 | Linux AppImage | _[VT link — Linux AppImage]_ |
-| Android debug APK | _[VT link — Android debug APK]_ |
-| Android unsigned APK | _[VT link — Android unsigned APK]_ |
-| iOS sim zip | _[VT link — iOS sim zip]_ |
 
 ---
 
@@ -112,26 +94,15 @@ After downloading release assets, upload each binary to [VirusTotal](https://www
 
 ### Actions disabled on fork
 
-**Settings → Actions → General** → allow workflows, then re-push the tag:
+**Settings → Actions → General** → allow workflows, then re-push the tag or re-run the workflow.
 
-```bash
-git push origin :refs/tags/v2.6.2   # delete remote tag (optional)
-git push origin v2.6.2
-```
+### Release empty
 
-### iOS job skipped or failed
+Ensure `permissions: contents: write` is set and the tag exists on the repo before (or when) the workflow runs.
 
-- iOS CLI (`tauri ios`) only runs on **macOS** runners.
-- The job is `continue-on-error: true` — Android/desktop assets still publish.
-- Fork must have Actions enabled; Xcode/simulator build can take 15–30 min.
+### Checksums missing
 
-### Android NDK errors
-
-Workflow pins NDK `27.0.12077973`. Re-run the job; local `npm run android:init` before build is handled in CI scripts.
-
-### Release empty on first tag
-
-Ensure `permissions: contents: write` is set (already in workflow files) and the default `GITHUB_TOKEN` can create releases.
+The `checksums` job runs after all platform builds. Wait for the full workflow; `SHA256.txt` is uploaded last.
 
 ---
 
@@ -139,9 +110,9 @@ Ensure `permissions: contents: write` is set (already in workflow files) and the
 
 - [ ] Fork repo
 - [ ] Enable Actions on fork
-- [ ] Push `v2.6.2` tag
-- [ ] Wait for `Release` + `Mobile Release` workflows
+- [ ] Push tag (e.g. `v2.6.3`)
+- [ ] Wait for **Release (Desktop)** (Win + macOS + Linux + checksums)
 - [ ] Download assets from GitHub Release
 - [ ] (Optional) Upload to VirusTotal and update release notes
 
-No secrets required for unsigned mobile builds. Desktop signing uses Tauri’s default CI flow via `tauri-action`.
+Desktop signing uses Tauri’s default CI flow via `tauri-action`.

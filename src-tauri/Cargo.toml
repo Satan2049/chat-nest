@@ -1,6 +1,6 @@
 [package]
 name = "that-gpt"
-version = "2.6.2"
+version = "2.6.3"
 description = "ThatGPT desktop chat application"
 authors = ["ThatGPT"]
 edition = "2021"
@@ -28,7 +28,7 @@ dotenvy = "0.15"
 base64 = "0.22"
 pdf-extract = "0.7"
 zip = { version = "2", default-features = false, features = ["deflate"] }
-keyring = "3"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 
 [profile.release]
 panic = "abort"

@@ -132,8 +132,8 @@ export function ProvidersPanel() {
       <section className="settings-section">
         <h3>Provider profiles</h3>
         <p className="settings-hint">
-          Switch between OpenAI-compatible APIs and local Ollama. The active provider syncs to your
-          .env settings.
+          Switch between OpenAI-compatible APIs and local Ollama. Saving a provider makes it active
+          for chat (same credentials as Test connection).
         </p>
 
         <ul className="providers-list">

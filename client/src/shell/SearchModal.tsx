@@ -6,7 +6,6 @@ import { useChatStore } from "../features/chat/store/chatStore";
 import { requestOpenModelSelector } from "../features/chat/lib/modelUtils";
 import { applyTheme, toggleTheme, type Theme } from "../shared/lib/theme";
 
-import { useMobileLayout } from "../shared/hooks/useMobileLayout";
 import { useTranslation } from "../shared/i18n/useTranslation";
 
 type Props = {
@@ -74,7 +73,6 @@ export function SearchModal({
   onThemeChange
 }: Props) {
   const { t } = useTranslation();
-  const isMobile = useMobileLayout();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -267,14 +265,6 @@ export function SearchModal({
         aria-label={t.search.title}
         onClick={(e) => e.stopPropagation()}
       >
-        {isMobile ? (
-          <header className="search-modal-header">
-            <h2 className="search-modal-title">{t.search.title}</h2>
-            <button type="button" className="search-modal-close" onClick={onClose}>
-              {t.common.close}
-            </button>
-          </header>
-        ) : null}
         <input
           ref={inputRef}
           type="search"

@@ -5,30 +5,33 @@ All notable changes to ThatGPT are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.3] - 2026-07-17
+
+Release notes: [docs/RELEASE_v2.6.3.md](docs/RELEASE_v2.6.3.md) · Fork builds: [docs/FORK_BUILDS.md](docs/FORK_BUILDS.md)
+
+**Desktop release** — Windows, macOS (Apple Silicon), and Linux via tag-triggered GitHub Actions, with `SHA256.txt` checksums on the Release.
+
+### Fixed
+
+- API keys no longer vanish after save: enable real OS keyring backends (`windows-native` / `apple-native` / Secret Service) and fall back to `.env` / provider file when keyring round-trip fails
+- Saving a provider now activates it for chat (Test connection and chat use the same credentials)
+- Settings footer Save no longer overwrites provider credentials with a stale empty key
+
+### Changed
+
+- Removed mobile/Android/iOS targets, MobileShell, mobile CI/release workflows, and related npm scripts — desktop only
+- Tag push `v*.*.*` runs **Release (Desktop)** for Win / macOS / Linux and uploads `SHA256.txt`
+
 ## [2.6.2] - 2026-06-20
 
-Release notes: [docs/RELEASE_v2.6.2.md](docs/RELEASE_v2.6.2.md) · Fork builds: [docs/FORK_BUILDS.md](docs/FORK_BUILDS.md) · Mobile: [docs/MOBILE_BUILD.md](docs/MOBILE_BUILD.md)
+Release notes: [docs/RELEASE_v2.6.2.md](docs/RELEASE_v2.6.2.md) · Fork builds: [docs/FORK_BUILDS.md](docs/FORK_BUILDS.md)
 
-**Mobile (Phase 1–3) + desktop** — Android/iOS simulator builds, dedicated mobile shell, polish for touch/RTL/back navigation.
+**Desktop only** — mobile/Android/iOS targets and MobileShell removed; Windows / macOS / Linux via GitHub Actions.
 
-### Added
+### Changed
 
-- Tauri Android target (`com.thatgpt.app`) with `tauri android init` scripts
-- Platform configs: `tauri.android.conf.json`, `tauri.ios.conf.json`
-- Mobile capability: `src-tauri/capabilities/mobile.json`
-- npm scripts: `android:init`, `android:build`, `ios:init`, `ios:build:sim`
-- GitHub Actions: `mobile-ci.yml`, `mobile-release.yml`
-- Android manifest patches (mic, notifications) via `scripts/patch-android-manifest.mjs`
-- **MobileShell** — bottom tab navigation (Chats, Projects, Library, More)
-- `useShellLayout` — auto-detect mobile (Tauri Android/iOS, narrow viewport, touch)
-- `mobile.css` — safe areas, touch-first UI, full-screen settings/search
-- **Phase 3 polish:** bottom sheets for message actions, Android back button stack, RTL mobile layout, library cards, compact project workspace
-- Release docs: `RELEASE_v2.6.2.md`, `FORK_BUILDS.md` (VirusTotal link placeholders)
-
-### Notes
-
-- Android ships **debug-signed APK** for sideload + **unsigned release APK** for manual signing
-- iOS ships **simulator `.app` zip** only (no App Store / TestFlight signing)
+- Removed Tauri Android/iOS configs, mobile CI/release workflows, and mobile npm scripts
+- App always uses DesktopShell (narrow viewport still uses the desktop sidebar drawer)
 
 ## [2.6.1] - 2026-06-20
 

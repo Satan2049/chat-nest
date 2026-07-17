@@ -7,7 +7,6 @@ import {
   useLibraryStore
 } from "../store/libraryStore";
 import type { LibraryFilter } from "../types/library.types";
-import { useMobileLayout } from "../../../shared/hooks/useMobileLayout";
 import { useTranslation } from "../../../shared/i18n/useTranslation";
 
 type Props = {
@@ -16,7 +15,6 @@ type Props = {
 
 export function LibraryPanel({ onOpenConversation }: Props) {
   const { t } = useTranslation();
-  const isMobile = useMobileLayout();
   const items = useLibraryStore((s) => s.items);
   const total = useLibraryStore((s) => s.total);
   const filter = useLibraryStore((s) => s.filter);
@@ -47,47 +45,27 @@ export function LibraryPanel({ onOpenConversation }: Props) {
   const subtitle = t.library.subtitle.replace("{count}", String(total));
 
   return (
-    <div className={isMobile ? "library-panel library-panel--mobile" : "library-panel"}>
-      {!isMobile ? (
-        <header className="library-header">
-          <div>
-            <h1 className="library-title">{t.library.title}</h1>
-            <p className="library-subtitle">{subtitle}</p>
-          </div>
-          <div className="library-filters" role="tablist" aria-label={t.library.title}>
-            {filters.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={filter === entry.id}
-                className={filter === entry.id ? "library-filter active" : "library-filter"}
-                onClick={() => setFilter(entry.id)}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-        </header>
-      ) : (
-        <div className="library-mobile-toolbar">
-          <div className="library-filters library-filters--mobile" role="tablist" aria-label={t.library.title}>
-            {filters.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={filter === entry.id}
-                className={filter === entry.id ? "library-filter active" : "library-filter"}
-                onClick={() => setFilter(entry.id)}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-          <p className="library-mobile-count">{subtitle}</p>
+    <div className="library-panel">
+      <header className="library-header">
+        <div>
+          <h1 className="library-title">{t.library.title}</h1>
+          <p className="library-subtitle">{subtitle}</p>
         </div>
-      )}
+        <div className="library-filters" role="tablist" aria-label={t.library.title}>
+          {filters.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === entry.id}
+              className={filter === entry.id ? "library-filter active" : "library-filter"}
+              onClick={() => setFilter(entry.id)}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
+      </header>
 
       {error ? (
         <div className="banner-error library-error" role="alert">
@@ -105,31 +83,6 @@ export function LibraryPanel({ onOpenConversation }: Props) {
           <p className="library-empty-title">{t.library.emptyTitle}</p>
           <p className="library-empty-sub">{t.library.emptySub}</p>
         </div>
-      ) : isMobile ? (
-        <ul className="library-card-list">
-          {items.map((item) => (
-            <li key={item.id} className="library-card">
-              <div className="library-card-main">
-                <span className={`library-kind-badge library-kind-badge--${item.kind}`}>
-                  {item.kind}
-                </span>
-                <span className="library-filename" dir="auto">
-                  {attachmentDisplayName(item)}
-                </span>
-                <span className="library-card-meta">
-                  {formatAttachmentSize(item.sizeBytes)} · {formatAttachmentDate(item.modifiedAt)}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="library-card-source"
-                onClick={() => openSource(item.conversationId)}
-              >
-                {item.conversationTitle || t.library.untitledChat}
-              </button>
-            </li>
-          ))}
-        </ul>
       ) : (
         <div className="library-table-wrap">
           <table className="library-table">

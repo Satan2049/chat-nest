@@ -180,12 +180,15 @@ export function SettingsPanel({
       return;
     }
 
+    // API credentials are managed by Providers; prefer the latest store value so the
+    // Settings footer Save cannot wipe a key that was just saved/activated there.
+    const latest = useSettingsStore.getState().settings;
     const ok = await saveSettings({
-      aiApiKey: form.aiApiKey,
-      aiBaseUrl: form.aiBaseUrl.trim(),
-      aiModel: form.aiModel.trim(),
-      aiImageModel: form.aiImageModel.trim(),
-      aiAudioModel: form.aiAudioModel.trim(),
+      aiApiKey: latest?.aiApiKey ?? form.aiApiKey,
+      aiBaseUrl: (latest?.aiBaseUrl ?? form.aiBaseUrl).trim(),
+      aiModel: (latest?.aiModel ?? form.aiModel).trim(),
+      aiImageModel: (latest?.aiImageModel ?? form.aiImageModel).trim(),
+      aiAudioModel: (latest?.aiAudioModel ?? form.aiAudioModel).trim(),
       aiDefaultSystemPrompt: form.aiDefaultSystemPrompt,
       aiRequestTimeoutMs: Math.round(aiRequestTimeoutMs),
       aiMaxRetries: Math.round(aiMaxRetries),
